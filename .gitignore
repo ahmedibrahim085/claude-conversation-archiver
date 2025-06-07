@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.zip
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sensitive data
+*.pem
+secrets.json
+.env
+
+# Temporary files
+*.tmp
+*.log
+
+# Chrome extension key files
+*.crx
+*.pem
+
+# Test outputs
+coverage/
+.nyc_output/
