@@ -1,10 +1,10 @@
 # Claude Conversation Archiver - Development Handoff
 
 ## Current Status
-**Last Updated**: 2025-06-08 10:30
-**Last Task Completed**: Task 1 - Project Setup & Manifest Configuration
-**Current Branch**: task-01-project-setup
-**Next Task**: Task 2 - DOM Capture Implementation
+**Last Updated**: 2025-06-08 11:00
+**Last Task Completed**: Task 2 - DOM Capture Implementation
+**Current Branch**: task-02-dom-capture
+**Next Task**: Task 3 - Local Storage with IndexedDB
 
 ## Project Overview
 Building a Chrome extension to archive Claude AI conversations with:
@@ -19,7 +19,12 @@ Building a Chrome extension to archive Claude AI conversations with:
   - Set up file structure with placeholder files
   - Created comprehensive README.md
   - Status: READY TO MERGE
-- [ ] Task 2: DOM Capture Implementation
+- [x] Task 2: DOM Capture Implementation (branch: task-02-dom-capture)
+  - Implemented conversation capture with MutationObserver
+  - Added message extraction with fallback selectors
+  - Included deduplication using content hash
+  - Sends messages to background script per interface spec
+  - Status: READY TO MERGE
 - [ ] Task 3: Local Storage with IndexedDB
 - [ ] Task 4: Popup Interface & Export
 - [ ] Task 5: Conversation Detection & Retrieval
@@ -33,7 +38,7 @@ Building a Chrome extension to archive Claude AI conversations with:
 | File | Status | Last Modified | Task | Notes |
 |------|---------|--------------|------|-------|
 | manifest.json | Complete | 2025-06-08 | Task 1 | Manifest V3 with activeTab, storage permissions |
-| content.js | Placeholder | 2025-06-08 | Task 2 | Has initialization log |
+| content.js | Complete | 2025-06-08 | Task 2 | Full DOM capture implementation |
 | background.js | Placeholder | 2025-06-08 | Task 3 | Has onInstalled listener |
 | popup.html | Placeholder | 2025-06-08 | Task 4 | Basic HTML structure |
 | popup.js | Placeholder | 2025-06-08 | Task 4 | Has DOMContentLoaded listener |
@@ -57,17 +62,19 @@ Building a Chrome extension to archive Claude AI conversations with:
 3. **Capture**: DOM-based (Claude doesn't use local storage)
 4. **Architecture**: Offline-first with optional sync
 5. **Permissions**: Minimal (activeTab, storage) to avoid manual review
+6. **DOM Strategy**: Primary selectors with automatic fallback
+7. **Deduplication**: Content hash comparison to avoid duplicate saves
 
 ## Next Conversation Should:
 1. Pull latest from main
-2. Merge task-01-project-setup to main
-3. Create branch task-02-dom-capture
-4. Implement content.js with:
-   - MutationObserver for DOM monitoring
-   - Message extraction from Claude UI
-   - Deduplication logic
-   - Message sending to background script
-5. Test conversation capture functionality
+2. Merge task-02-dom-capture to main
+3. Create branch task-03-local-storage
+4. Implement background.js with:
+   - IndexedDB wrapper class
+   - Message handlers for saveConversation
+   - Device ID management
+   - Error handling
+5. Test storage functionality
 
 ## Git Workflow Commands
 ```bash
