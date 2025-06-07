@@ -34,15 +34,15 @@
       "id": 2,
       "name": "DOM Capture Implementation",
       "description": "Implement content script for conversation capture",
-      "status": "not-started",
+      "status": "completed",
       "priority": "critical",
       "branch": "task-02-dom-capture",
       "files": ["content.js"],
       "dependencies": [1],
       "estimatedHours": 1,
-      "actualHours": null,
-      "startedAt": null,
-      "completedAt": null,
+      "actualHours": 0.5,
+      "startedAt": "2025-06-08T10:30:00Z",
+      "completedAt": "2025-06-08T11:00:00Z",
       "mergedToMain": false
     },
     {
@@ -194,10 +194,10 @@
   ],
   "statistics": {
     "totalTasks": 10,
-    "completedTasks": 1,
+    "completedTasks": 2,
     "inProgressTasks": 0,
     "totalEstimatedHours": 13,
-    "totalActualHours": 0.5,
-    "completionPercentage": 10
+    "totalActualHours": 1.0,
+    "completionPercentage": 20
   }
 }
