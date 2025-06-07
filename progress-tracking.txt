@@ -49,15 +49,15 @@
       "id": 3,
       "name": "Local Storage with IndexedDB",
       "description": "Background script with IndexedDB storage",
-      "status": "not-started",
+      "status": "completed",
       "priority": "critical",
       "branch": "task-03-local-storage",
       "files": ["background.js"],
       "dependencies": [2],
       "estimatedHours": 1,
-      "actualHours": null,
-      "startedAt": null,
-      "completedAt": null,
+      "actualHours": 0.5,
+      "startedAt": "2025-06-08T11:00:00Z",
+      "completedAt": "2025-06-08T11:30:00Z",
       "mergedToMain": false
     },
     {
@@ -194,10 +194,10 @@
   ],
   "statistics": {
     "totalTasks": 10,
-    "completedTasks": 2,
+    "completedTasks": 3,
     "inProgressTasks": 0,
     "totalEstimatedHours": 13,
-    "totalActualHours": 1.0,
-    "completionPercentage": 20
+    "totalActualHours": 1.5,
+    "completionPercentage": 30
   }
 }
