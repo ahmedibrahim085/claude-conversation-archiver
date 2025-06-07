@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Claude Conversation Archiver",
+  "version": "1.0.0",
+  "description": "Archive your Claude AI conversations locally with optional cloud sync",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://claude.ai/*",
+    "https://api.github.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "128": "icons/icon-128.png"
+  }
+}

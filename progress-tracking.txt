@@ -1,0 +1,203 @@
+{
+  "project": {
+    "name": "Claude Conversation Archiver",
+    "version": "1.0.0",
+    "startDate": "2025-06-07T15:00:00Z",
+    "targetCompletion": "2025-06-09T23:59:59Z",
+    "repository": "claude-conversation-archiver"
+  },
+  "tasks": [
+    {
+      "id": 1,
+      "name": "Project Setup & Manifest Configuration",
+      "description": "Create initial structure with Manifest V3",
+      "status": "completed",
+      "priority": "critical",
+      "branch": "task-01-project-setup",
+      "files": [
+        "manifest.json",
+        "README.md",
+        ".gitignore",
+        "content.js (placeholder)",
+        "background.js (placeholder)",
+        "popup.html (placeholder)",
+        "popup.js (placeholder)"
+      ],
+      "dependencies": [],
+      "estimatedHours": 1,
+      "actualHours": 0.5,
+      "startedAt": "2025-06-08T10:00:00Z",
+      "completedAt": "2025-06-08T10:30:00Z",
+      "mergedToMain": false
+    },
+    {
+      "id": 2,
+      "name": "DOM Capture Implementation",
+      "description": "Implement content script for conversation capture",
+      "status": "not-started",
+      "priority": "critical",
+      "branch": "task-02-dom-capture",
+      "files": ["content.js"],
+      "dependencies": [1],
+      "estimatedHours": 1,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
+    },
+    {
+      "id": 3,
+      "name": "Local Storage with IndexedDB",
+      "description": "Background script with IndexedDB storage",
+      "status": "not-started",
+      "priority": "critical",
+      "branch": "task-03-local-storage",
+      "files": ["background.js"],
+      "dependencies": [2],
+      "estimatedHours": 1,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
+    },
+    {
+      "id": 4,
+      "name": "Popup Interface & Export",
+      "description": "User interface for viewing and exporting",
+      "status": "not-started",
+      "priority": "critical",
+      "branch": "task-04-popup-interface",
+      "files": ["popup.html", "popup.js"],
+      "dependencies": [3],
+      "estimatedHours": 1,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
+    },
+    {
+      "id": 5,
+      "name": "Conversation Detection & Retrieval",
+      "description": "Detect and indicate archived conversations",
+      "status": "not-started",
+      "priority": "high",
+      "branch": "task-05-conversation-detection",
+      "files": ["content.js", "background.js"],
+      "dependencies": [2, 3],
+      "estimatedHours": 1,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
+    },
+    {
+      "id": 6,
+      "name": "GitHub Gist Sync Implementation",
+      "description": "Add cloud sync via GitHub Gists",
+      "status": "not-started",
+      "priority": "high",
+      "branch": "task-06-github-sync",
+      "files": ["background.js", "popup.html", "popup.js"],
+      "dependencies": [4],
+      "estimatedHours": 2,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
+    },
+    {
+      "id": 7,
+      "name": "Idle Sync & Performance Optimization",
+      "description": "Optimize for battery and performance",
+      "status": "not-started",
+      "priority": "medium",
+      "branch": "task-07-performance",
+      "files": ["background.js", "content.js"],
+      "dependencies": [6],
+      "estimatedHours": 1,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
+    },
+    {
+      "id": 8,
+      "name": "Testing & Chrome Store Preparation",
+      "description": "Testing suite and store submission prep",
+      "status": "not-started",
+      "priority": "high",
+      "branch": "task-08-testing-store",
+      "files": ["test.js", "privacy-policy.md", "store-assets/"],
+      "dependencies": [1, 2, 3, 4, 5, 6],
+      "estimatedHours": 2,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
+    },
+    {
+      "id": 9,
+      "name": "Cross-Device Sync Enhancement",
+      "description": "Improve multi-device support",
+      "status": "not-started",
+      "priority": "low",
+      "branch": "task-09-cross-device",
+      "files": ["background.js", "popup.js"],
+      "dependencies": [6],
+      "estimatedHours": 1,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
+    },
+    {
+      "id": 10,
+      "name": "Final Polish & Documentation",
+      "description": "UI improvements and documentation",
+      "status": "not-started",
+      "priority": "low",
+      "branch": "task-10-polish",
+      "files": ["README.md", "docs/", "popup.html", "popup.js"],
+      "dependencies": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      "estimatedHours": 2,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
+    }
+  ],
+  "milestones": [
+    {
+      "name": "MVP Complete",
+      "tasks": [1, 2, 3, 4],
+      "targetDate": "2025-06-08T12:00:00Z",
+      "completed": false
+    },
+    {
+      "name": "Sync Enabled",
+      "tasks": [5, 6],
+      "targetDate": "2025-06-08T18:00:00Z",
+      "completed": false
+    },
+    {
+      "name": "Production Ready",
+      "tasks": [7, 8],
+      "targetDate": "2025-06-09T12:00:00Z",
+      "completed": false
+    },
+    {
+      "name": "Enhanced Features",
+      "tasks": [9, 10],
+      "targetDate": "2025-06-09T23:59:59Z",
+      "completed": false
+    }
+  ],
+  "statistics": {
+    "totalTasks": 10,
+    "completedTasks": 1,
+    "inProgressTasks": 0,
+    "totalEstimatedHours": 13,
+    "totalActualHours": 0.5,
+    "completionPercentage": 10
+  }
+}
