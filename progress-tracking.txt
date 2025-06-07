@@ -64,15 +64,15 @@
       "id": 4,
       "name": "Popup Interface & Export",
       "description": "User interface for viewing and exporting",
-      "status": "not-started",
+      "status": "completed",
       "priority": "critical",
       "branch": "task-04-popup-interface",
       "files": ["popup.html", "popup.js"],
       "dependencies": [3],
       "estimatedHours": 1,
-      "actualHours": null,
-      "startedAt": null,
-      "completedAt": null,
+      "actualHours": 0.5,
+      "startedAt": "2025-06-08T11:30:00Z",
+      "completedAt": "2025-06-08T12:00:00Z",
       "mergedToMain": false
     },
     {
@@ -171,7 +171,7 @@
       "name": "MVP Complete",
       "tasks": [1, 2, 3, 4],
       "targetDate": "2025-06-08T12:00:00Z",
-      "completed": false
+      "completed": true
     },
     {
       "name": "Sync Enabled",
@@ -194,10 +194,10 @@
   ],
   "statistics": {
     "totalTasks": 10,
-    "completedTasks": 3,
+    "completedTasks": 4,
     "inProgressTasks": 0,
     "totalEstimatedHours": 13,
-    "totalActualHours": 1.5,
-    "completionPercentage": 30
+    "totalActualHours": 2.0,
+    "completionPercentage": 40
   }
 }
