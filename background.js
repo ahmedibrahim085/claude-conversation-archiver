@@ -103,27 +103,67 @@ class ConversationDB {
         contentHash: contentHash
       });
 
-      // Create transaction and store
+      // Check if conversation with same content already exists
       const transaction = db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
-      
-      // Simple add without checking for duplicates first
-      const request = store.add(enrichedData);
+      const index = store.index('conversationId');
+      const getRequest = index.getAll(enrichedData.conversationId);
 
       return new Promise((resolve, reject) => {
-        request.onsuccess = () => {
-          console.log('Claude Archiver: Conversation saved with ID:', request.result);
-          // Close the database connection after successful save
-          db.close();
-          resolve(request.result);
+        getRequest.onsuccess = () => {
+          const existingConversations = getRequest.result || [];
+          
+          // Check if we already have this exact content
+          const duplicate = existingConversations.find(conv => 
+            conv.contentHash === contentHash
+          );
+          
+          if (duplicate) {
+            console.log('Claude Archiver: Skipping duplicate conversation (same content)');
+            db.close();
+            resolve(duplicate.id);
+            return;
+          }
+          
+          // If content changed, update the existing conversation
+          if (existingConversations.length > 0) {
+            const existing = existingConversations[0];
+            enrichedData.id = existing.id; // Keep same ID
+            const updateRequest = store.put(enrichedData);
+            
+            updateRequest.onsuccess = () => {
+              console.log('Claude Archiver: Updated existing conversation with new content');
+              db.close();
+              resolve(updateRequest.result);
+            };
+            
+            updateRequest.onerror = () => {
+              console.error('Claude Archiver: Failed to update conversation', updateRequest.error);
+              db.close();
+              reject(updateRequest.error);
+            };
+          } else {
+            // New conversation, add it
+            const addRequest = store.add(enrichedData);
+            
+            addRequest.onsuccess = () => {
+              console.log('Claude Archiver: New conversation saved with ID:', addRequest.result);
+              db.close();
+              resolve(addRequest.result);
+            };
+            
+            addRequest.onerror = () => {
+              console.error('Claude Archiver: Failed to save conversation', addRequest.error);
+              db.close();
+              reject(addRequest.error);
+            };
+          }
         };
 
-        request.onerror = () => {
-          console.error('Claude Archiver: Failed to save conversation', request.error);
-          console.error('Claude Archiver: Error name:', request.error?.name);
-          console.error('Claude Archiver: Error message:', request.error?.message);
+        getRequest.onerror = () => {
+          console.error('Claude Archiver: Failed to check existing conversations');
           db.close();
-          reject(request.error);
+          reject(getRequest.error);
         };
 
         transaction.onerror = () => {
