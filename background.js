@@ -33,8 +33,7 @@ class ConversationDB {
    * @returns {Promise<IDBDatabase>}
    */
   async open() {
-    if (this.db) return this.db;
-
+    // Don't reuse cached connection to avoid closing issues
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.version);
 
@@ -44,9 +43,9 @@ class ConversationDB {
       };
 
       request.onsuccess = () => {
-        this.db = request.result;
+        const db = request.result;
         console.log('Claude Archiver: Database opened successfully');
-        resolve(this.db);
+        resolve(db);
       };
 
       request.onupgradeneeded = (event) => {
@@ -77,10 +76,9 @@ class ConversationDB {
    */
   async save(data) {
     try {
+      // Open a fresh connection for this save operation
       const db = await this.open();
-      const transaction = db.transaction([this.storeName], 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-
+      
       // Add device ID and timestamps
       const deviceId = await getDeviceId();
       const enrichedData = {
@@ -91,28 +89,74 @@ class ConversationDB {
         syncedAt: null
       };
 
+      // Generate a content hash to check for duplicates
+      const contentHash = this.generateContentHash(enrichedData.messages);
+      enrichedData.contentHash = contentHash;
+
+      // Log data structure for debugging
+      console.log('Claude Archiver: Attempting to save data:', {
+        conversationId: enrichedData.conversationId,
+        messageCount: enrichedData.messages?.length,
+        capturedAt: new Date(enrichedData.capturedAt).toISOString(),
+        url: enrichedData.url,
+        dataSize: JSON.stringify(enrichedData).length + ' bytes',
+        contentHash: contentHash
+      });
+
+      // Create transaction and store
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+      
+      // Simple add without checking for duplicates first
       const request = store.add(enrichedData);
 
       return new Promise((resolve, reject) => {
         request.onsuccess = () => {
           console.log('Claude Archiver: Conversation saved with ID:', request.result);
+          // Close the database connection after successful save
+          db.close();
           resolve(request.result);
         };
 
         request.onerror = () => {
           console.error('Claude Archiver: Failed to save conversation', request.error);
+          console.error('Claude Archiver: Error name:', request.error?.name);
+          console.error('Claude Archiver: Error message:', request.error?.message);
+          db.close();
           reject(request.error);
         };
 
         transaction.onerror = () => {
           console.error('Claude Archiver: Transaction failed', transaction.error);
+          db.close();
           reject(transaction.error);
         };
       });
     } catch (error) {
       console.error('Claude Archiver: Save error', error);
+      console.error('Claude Archiver: Error type:', error.constructor.name);
+      console.error('Claude Archiver: Error stack:', error.stack);
       throw error;
     }
+  }
+
+  /**
+   * Generate a hash of message contents to detect duplicates
+   */
+  generateContentHash(messages) {
+    if (!messages || messages.length === 0) return '';
+    
+    // Simple hash based on message count and first/last message content
+    const summary = `${messages.length}-${messages[0]?.content?.substring(0, 50)}-${messages[messages.length - 1]?.content?.substring(0, 50)}`;
+    
+    // Simple string hash function
+    let hash = 0;
+    for (let i = 0; i < summary.length; i++) {
+      const char = summary.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash.toString(36);
   }
 
   /**
@@ -124,12 +168,31 @@ class ConversationDB {
       const db = await this.open();
       const transaction = db.transaction([this.storeName], 'readonly');
       const store = transaction.objectStore(this.storeName);
+      
+      // Log store info
+      console.log('Claude Archiver: Getting all conversations from store:', this.storeName);
+      
       const request = store.getAll();
 
       return new Promise((resolve, reject) => {
         request.onsuccess = () => {
-          console.log(`Claude Archiver: Retrieved ${request.result.length} conversations`);
-          resolve(request.result);
+          const conversations = request.result || [];
+          console.log(`Claude Archiver: Retrieved ${conversations.length} conversations`);
+          
+          // Log first conversation for debugging
+          if (conversations.length > 0) {
+            console.log('Claude Archiver: First conversation:', {
+              id: conversations[0].id,
+              conversationId: conversations[0].conversationId,
+              messageCount: conversations[0].messages?.length,
+              capturedAt: new Date(conversations[0].capturedAt).toISOString()
+            });
+          }
+          
+          // Close the database connection after use
+          db.close();
+          
+          resolve(conversations);
         };
 
         request.onerror = () => {
@@ -231,6 +294,41 @@ class ConversationDB {
 // Create database instance
 const db = new ConversationDB();
 
+// Test database on startup with error protection
+(async function testDatabase() {
+  try {
+    console.log('Claude Archiver: Testing database connection...');
+    
+    // Just test that we can get conversations (don't hold connection)
+    const conversations = await db.getAll();
+    console.log(`Claude Archiver: Database test successful - ${conversations.length} conversations found`);
+    
+  } catch (error) {
+    console.error('Claude Archiver: Database test failed:', error);
+    console.error('Claude Archiver: Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    // Try to recover by recreating the database
+    if (error.name === 'VersionError') {
+      console.log('Claude Archiver: Attempting to recreate database...');
+      try {
+        // Delete the old database
+        await new Promise((resolve, reject) => {
+          const deleteReq = indexedDB.deleteDatabase('ClaudeArchiverDB');
+          deleteReq.onsuccess = resolve;
+          deleteReq.onerror = reject;
+        });
+        console.log('Claude Archiver: Old database deleted, extension should work on next reload');
+      } catch (deleteError) {
+        console.error('Claude Archiver: Failed to delete database:', deleteError);
+      }
+    }
+  }
+})();
+
 /**
  * Generates a unique device ID
  * @returns {string} UUID v4 device ID
@@ -296,6 +394,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             });
           } catch (error) {
             console.error('Claude Archiver: Save failed', error);
+            console.error('Error details:', {
+              name: error.name,
+              message: error.message,
+              stack: error.stack
+            });
             sendResponse({ 
               success: false, 
               error: error.message || 'Failed to save conversation' 

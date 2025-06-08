@@ -5,6 +5,9 @@
 
 console.log('Claude Archiver: Content script loaded on', window.location.href);
 
+// Set a marker so we can verify the script loaded
+window.__CLAUDE_ARCHIVER_LOADED__ = true;
+
 // Actual selectors from Claude's DOM
 const SELECTORS = {
   // User messages have data-testid="user-message" 
