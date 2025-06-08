@@ -160,6 +160,39 @@ class ConversationDB {
   }
 
   /**
+   * Checks if a conversation exists by conversation ID
+   * @param {string} conversationId - The conversation ID to check
+   * @returns {Promise<boolean>} True if conversation exists
+   */
+  async existsByConversationId(conversationId) {
+    if (!conversationId) return false;
+    
+    try {
+      const db = await this.open();
+      const transaction = db.transaction([this.storeName], 'readonly');
+      const store = transaction.objectStore(this.storeName);
+      const index = store.index('conversationId');
+      const request = index.get(conversationId);
+      
+      return new Promise((resolve) => {
+        request.onsuccess = () => {
+          db.close();
+          resolve(request.result !== undefined);
+        };
+        
+        request.onerror = () => {
+          console.error('Claude Archiver: Error checking conversation existence');
+          db.close();
+          resolve(false);
+        };
+      });
+    } catch (error) {
+      console.error('Claude Archiver: Error in existsByConversationId:', error);
+      return false;
+    }
+  }
+
+  /**
    * Retrieves all conversations from the database
    * @returns {Promise<Array>} Array of all conversations
    */
@@ -469,6 +502,48 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ 
               success: false, 
               error: error.message || 'Failed to clear conversations' 
+            });
+          }
+          break;
+
+        case 'checkConversation':
+          // Check if conversation exists
+          try {
+            const exists = await db.existsByConversationId(message.conversationId);
+            sendResponse({ 
+              success: true, 
+              exists: exists 
+            });
+          } catch (error) {
+            console.error('Claude Archiver: Check conversation failed', error);
+            sendResponse({ 
+              success: false, 
+              error: error.message || 'Failed to check conversation' 
+            });
+          }
+          break;
+
+        case 'setBadge':
+          // Set or clear badge
+          try {
+            const tabId = sender.tab?.id;
+            if (!tabId) {
+              sendResponse({ success: false, error: 'No tab ID' });
+              return;
+            }
+
+            if (message.show) {
+              await chrome.action.setBadgeText({ text: "✓", tabId: tabId });
+              await chrome.action.setBadgeBackgroundColor({ color: "#4CAF50" });
+            } else {
+              await chrome.action.setBadgeText({ text: "", tabId: tabId });
+            }
+            sendResponse({ success: true });
+          } catch (error) {
+            console.error('Claude Archiver: Set badge failed', error);
+            sendResponse({ 
+              success: false, 
+              error: error.message || 'Failed to set badge' 
             });
           }
           break;

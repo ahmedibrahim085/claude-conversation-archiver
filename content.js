@@ -312,6 +312,35 @@ function setupMutationObserver() {
   console.log('Claude Archiver: MutationObserver started');
 }
 
+function checkIfArchived() {
+  const conversationId = extractConversationId();
+  if (!conversationId || conversationId.startsWith('conv_')) {
+    // Not a real conversation ID, clear badge
+    chrome.runtime.sendMessage({ action: 'setBadge', show: false });
+    return;
+  }
+  
+  // Check if this conversation is archived
+  chrome.runtime.sendMessage({
+    action: 'checkConversation',
+    conversationId: conversationId
+  }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('Claude Archiver: Error checking conversation:', chrome.runtime.lastError);
+      return;
+    }
+    
+    if (response?.success && response.exists) {
+      console.log('Claude Archiver: This conversation is archived');
+      // Show badge
+      chrome.runtime.sendMessage({ action: 'setBadge', show: true });
+    } else {
+      // Clear badge
+      chrome.runtime.sendMessage({ action: 'setBadge', show: false });
+    }
+  });
+}
+
 function initialize() {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initialize);
@@ -320,6 +349,9 @@ function initialize() {
   
   console.log('Claude Archiver: Initializing...');
   setupMutationObserver();
+  
+  // Check if current conversation is archived
+  checkIfArchived();
   
   // Monitor URL changes
   let lastUrl = location.href;
@@ -330,6 +362,8 @@ function initialize() {
       console.log('Claude Archiver: URL changed to:', url);
       // Reset and recapture
       lastCaptureHash = '';
+      // Check if new conversation is archived
+      checkIfArchived();
       setTimeout(handleConversationCapture, 2000);
     }
   }).observe(document, {subtree: true, childList: true});
