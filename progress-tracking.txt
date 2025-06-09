@@ -79,15 +79,15 @@
       "id": 5,
       "name": "Conversation Detection & Retrieval",
       "description": "Detect and indicate archived conversations",
-      "status": "not-started",
+      "status": "completed",
       "priority": "high",
       "branch": "task-05-conversation-detection",
       "files": ["content.js", "background.js"],
       "dependencies": [2, 3],
       "estimatedHours": 1,
-      "actualHours": null,
-      "startedAt": null,
-      "completedAt": null,
+      "actualHours": 3,
+      "startedAt": "2025-06-09T12:00:00Z",
+      "completedAt": "2025-06-09T15:00:00Z",
       "mergedToMain": false
     },
     {
@@ -209,10 +209,10 @@
   ],
   "statistics": {
     "totalTasks": 11,
-    "completedTasks": 4,
+    "completedTasks": 5,
     "inProgressTasks": 0,
     "totalEstimatedHours": 16,
-    "totalActualHours": 2.0,
-    "completionPercentage": 36
+    "totalActualHours": 5.0,
+    "completionPercentage": 45
   }
 }
