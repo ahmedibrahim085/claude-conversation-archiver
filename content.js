@@ -146,8 +146,22 @@ function captureConversations() {
     const baseTimestamp = Date.now();
     const timestampIncrement = 60000; // 1 minute between messages
     
-    // Find all message elements in DOM order (chronological)
-    const allMessageElements = document.querySelectorAll('.font-user-message, .font-claude-message');
+    // Find all message elements and ensure they're in DOM order
+    const userMessages = Array.from(document.querySelectorAll('.font-user-message'));
+    const assistantMessages = Array.from(document.querySelectorAll('.font-claude-message'));
+    const allMessageElements = [...userMessages, ...assistantMessages];
+    
+    // Sort by document position to ensure DOM order
+    allMessageElements.sort((a, b) => {
+      const position = a.compareDocumentPosition(b);
+      if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+        return -1; // a comes before b
+      } else if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+        return 1; // b comes before a
+      }
+      return 0;
+    });
+    
     console.log(`Claude Archiver: Found ${allMessageElements.length} total messages in DOM order`);
     
     // Process messages in their DOM order
