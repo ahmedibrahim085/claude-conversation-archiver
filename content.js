@@ -8,6 +8,28 @@ console.log('Claude Archiver: Content script loaded on', window.location.href);
 // Set a marker so we can verify the script loaded
 window.__CLAUDE_ARCHIVER_LOADED__ = true;
 
+// Keep track of connection state
+let isConnected = true;
+
+// Function to wake up service worker if needed
+async function ensureServiceWorkerActive() {
+  try {
+    // Try to send a ping message
+    await chrome.runtime.sendMessage({ action: 'ping' });
+    if (!isConnected) {
+      console.log('Claude Archiver: Reconnected to service worker');
+      isConnected = true;
+    }
+    return true;
+  } catch (error) {
+    if (isConnected) {
+      console.warn('Claude Archiver: Lost connection to service worker');
+      isConnected = false;
+    }
+    return false;
+  }
+}
+
 // Actual selectors from Claude's DOM
 const SELECTORS = {
   // User messages have data-testid="user-message" 
@@ -258,6 +280,13 @@ async function sendConversationToBackground(messages) {
     // Check if extension context is still valid
     if (!chrome.runtime?.id) {
       console.warn('Claude Archiver: Extension context invalidated, skipping save');
+      return;
+    }
+    
+    // Ensure service worker is active before sending
+    const isActive = await ensureServiceWorkerActive();
+    if (!isActive) {
+      console.warn('Claude Archiver: Service worker not responding, skipping save');
       return;
     }
     

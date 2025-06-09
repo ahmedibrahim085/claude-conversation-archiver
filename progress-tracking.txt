@@ -164,6 +164,21 @@
       "startedAt": null,
       "completedAt": null,
       "mergedToMain": false
+    },
+    {
+      "id": 11,
+      "name": "Incremental Message Updates",
+      "description": "Only save new messages instead of entire conversation",
+      "status": "not-started",
+      "priority": "medium",
+      "branch": "task-11-incremental-updates",
+      "files": ["content.js", "background.js"],
+      "dependencies": [3, 5],
+      "estimatedHours": 3,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
     }
   ],
   "milestones": [
@@ -193,11 +208,11 @@
     }
   ],
   "statistics": {
-    "totalTasks": 10,
+    "totalTasks": 11,
     "completedTasks": 4,
     "inProgressTasks": 0,
-    "totalEstimatedHours": 13,
+    "totalEstimatedHours": 16,
     "totalActualHours": 2.0,
-    "completionPercentage": 40
+    "completionPercentage": 36
   }
 }

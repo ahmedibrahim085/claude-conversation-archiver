@@ -186,17 +186,17 @@ class ConversationDB {
   generateContentHash(messages) {
     if (!messages || messages.length === 0) return '';
     
-    // Simple hash based on message count and first/last message content
-    const summary = `${messages.length}-${messages[0]?.content?.substring(0, 50)}-${messages[messages.length - 1]?.content?.substring(0, 50)}`;
+    // Create a more comprehensive hash that includes all message content
+    const fullContent = messages.map(m => `${m.role}:${m.content}`).join('|||');
     
     // Simple string hash function
     let hash = 0;
-    for (let i = 0; i < summary.length; i++) {
-      const char = summary.charCodeAt(i);
+    for (let i = 0; i < fullContent.length; i++) {
+      const char = fullContent.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
       hash = hash & hash; // Convert to 32bit integer
     }
-    return hash.toString(36);
+    return Math.abs(hash).toString(36);
   }
 
   /**
@@ -588,6 +588,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           }
           break;
 
+        case 'ping':
+          // Simple ping to keep service worker alive
+          sendResponse({ success: true, pong: true });
+          break;
+
         default:
           sendResponse({ 
             success: false, 
@@ -606,6 +611,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Return true to indicate async response
   return true;
 });
+
+// Keep service worker alive
+let keepAliveInterval;
+
+function startKeepAlive() {
+  // Ping every 20 seconds to keep service worker active
+  keepAliveInterval = setInterval(() => {
+    chrome.storage.local.get('ping', () => {
+      // Just accessing storage keeps the service worker alive
+    });
+  }, 20000);
+}
+
+function stopKeepAlive() {
+  if (keepAliveInterval) {
+    clearInterval(keepAliveInterval);
+    keepAliveInterval = null;
+  }
+}
+
+// Start keep-alive when service worker starts
+startKeepAlive();
 
 // Log when service worker starts
 console.log('Claude Archiver: Background service worker started');
