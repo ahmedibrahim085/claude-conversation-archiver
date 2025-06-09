@@ -179,6 +179,36 @@
       "startedAt": null,
       "completedAt": null,
       "mergedToMain": false
+    },
+    {
+      "id": 12,
+      "name": "Selective Conversation Export",
+      "description": "Allow users to select specific conversations to export",
+      "status": "not-started",
+      "priority": "high",
+      "branch": "task-12-selective-export",
+      "files": ["popup.html", "popup.js", "background.js"],
+      "dependencies": [4, 6],
+      "estimatedHours": 2,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
+    },
+    {
+      "id": 13,
+      "name": "Artifact Download Support",
+      "description": "Extract and download artifacts/files from conversations",
+      "status": "not-started",
+      "priority": "medium",
+      "branch": "task-13-artifact-download",
+      "files": ["content.js", "background.js", "popup.js"],
+      "dependencies": [2, 4],
+      "estimatedHours": 3,
+      "actualHours": null,
+      "startedAt": null,
+      "completedAt": null,
+      "mergedToMain": false
     }
   ],
   "milestones": [
@@ -208,11 +238,11 @@
     }
   ],
   "statistics": {
-    "totalTasks": 11,
+    "totalTasks": 13,
     "completedTasks": 6,
     "inProgressTasks": 0,
-    "totalEstimatedHours": 16,
+    "totalEstimatedHours": 21,
     "totalActualHours": 5.5,
-    "completionPercentage": 55
+    "completionPercentage": 46
   }
 }

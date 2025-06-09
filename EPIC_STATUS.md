@@ -8,11 +8,13 @@
 - [x] **1.3** Local Storage Implementation *(Task 3)*
 - [x] **1.4** Visual Conversation Indicators *(Task 5)*
 
-### ⚡ Epic 2: Data Management & Export (75% Complete)
+### ⚡ Epic 2: Data Management & Export (50% Complete)
 - [x] **2.1** Conversation Export *(Task 4)*
 - [x] **2.2** Conversation Import *(Task 6)*
 - [ ] **2.3** Selective Data Management *(Not implemented)*
 - [x] **2.4** Auto-Export Scheduling *(Task 6)*
+- [ ] **2.5** Selective Conversation Export *(New - High Priority)*
+- [ ] **2.6** Artifact Download *(New - Medium Priority)*
 
 ### 🔄 Epic 3: Enhanced User Experience (50% Complete)
 - [x] **3.1** Extension Popup Interface *(Task 4)*
@@ -43,6 +45,8 @@
 | 9 | Cross-Device | 4.3 | 📅 Low Priority |
 | 10 | Polish & Docs | - | 📅 Planned |
 | 11 | Incremental Updates | 4.1 | 📅 High Priority |
+| 12 | Selective Export | 2.5 | 📅 High Priority |
+| 13 | Artifact Download | 2.6 | 📅 Medium Priority |
 
 ---
 
@@ -71,22 +75,35 @@ Focus should be on:
 
 ## Recommended Next Steps
 
-1. **Implement Task 11** (Incremental Updates)
-   - Highest value feature remaining
-   - Significant storage optimization
-   - Better user experience
+1. **Implement Task 12** (Selective Export) - NEW HIGH PRIORITY
+   - User requested feature
+   - High value for sharing specific conversations
+   - Builds on existing export functionality
+   - Estimated 2 hours
 
-2. **Complete Task 7** (Performance)
+2. **Implement Task 11** (Incremental Updates)
+   - Significant storage optimization
+   - Better performance for long conversations
+   - Reduces duplicate data
+
+3. **Implement Task 13** (Artifact Download)
+   - Preserves Claude-generated files
+   - Important for code/document archival
+   - Medium complexity
+
+4. **Complete Task 7** (Performance)
    - Ensure production readiness
    - Optimize memory usage
    - Implement proper error recovery
 
-3. **Prepare for Chrome Store** (Task 8)
+5. **Prepare for Chrome Store** (Task 8)
    - Create privacy policy
    - Generate store assets
    - Beta testing
 
-4. **Consider User Feedback**
-   - After initial release, prioritize based on user requests
-   - Search might become high priority
-   - Format options based on use cases
+## New Priority Order
+Based on user feedback, the priority has shifted to:
+1. **Selective Export** (Task 12) - User can choose what to export
+2. **Incremental Updates** (Task 11) - Storage efficiency
+3. **Artifact Download** (Task 13) - Preserve generated content
+4. **Performance** (Task 7) - Production readiness

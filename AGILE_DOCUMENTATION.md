@@ -114,6 +114,34 @@ Enable Claude.ai users to permanently archive, search, and manage their AI conve
 - Confirmation before deletion
 - Updates storage statistics immediately
 
+### User Story 2.5: Selective Conversation Export
+**As a** Claude.ai user  
+**I want** to select specific conversations to export  
+**So that** I can share or backup only relevant discussions
+
+**Acceptance Criteria:**
+- Shows list of all archived conversations with checkboxes
+- Select individual conversations for export
+- Select multiple conversations (with select all option)
+- Export only selected conversations to JSON
+- Shows count of selected conversations
+- Maintains same export format as full export
+- Generates filename indicating partial export
+
+### User Story 2.6: Artifact Download
+**As a** Claude.ai user  
+**I want** to download artifacts (files) from conversations  
+**So that** I can preserve code, documents, and other files Claude created
+
+**Acceptance Criteria:**
+- Detects artifacts/files in conversations
+- Shows artifact indicators in conversation list
+- Option to include artifacts in export
+- Extracts artifact content with proper file extensions
+- Creates ZIP file when multiple artifacts present
+- Preserves artifact metadata (filename, type, creation time)
+- Handles various artifact types (code, SVG, markdown, etc.)
+
 ### User Story 2.4: Auto-Export Scheduling
 **As a** Claude.ai user  
 **I want** automatic backups on a schedule  
