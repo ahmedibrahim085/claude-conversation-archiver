@@ -94,7 +94,7 @@
       "id": 6,
       "name": "Enhanced Export & Auto-Save",
       "description": "Auto-export, scheduled downloads, and import functionality",
-      "status": "in-progress",
+      "status": "completed",
       "priority": "high",
       "branch": "task-06-enhanced-export",
       "files": ["background.js", "popup.html", "popup.js", "manifest.json"],
@@ -102,7 +102,7 @@
       "estimatedHours": 1.5,
       "actualHours": 0.5,
       "startedAt": "2025-06-09T16:00:00Z",
-      "completedAt": null,
+      "completedAt": "2025-06-09T16:30:00Z",
       "mergedToMain": false
     },
     {
@@ -209,10 +209,10 @@
   ],
   "statistics": {
     "totalTasks": 11,
-    "completedTasks": 5,
+    "completedTasks": 6,
     "inProgressTasks": 0,
     "totalEstimatedHours": 16,
-    "totalActualHours": 5.0,
-    "completionPercentage": 45
+    "totalActualHours": 5.5,
+    "completionPercentage": 55
   }
 }
