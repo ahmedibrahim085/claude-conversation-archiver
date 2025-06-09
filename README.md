@@ -29,17 +29,33 @@ A Chrome extension that automatically archives your Claude AI conversations loca
    - You should see "Claude Archiver: Content script loaded" in the console
    - The extension icon will appear in your toolbar
 
-## File Structure
+## Project Structure
 
 ```
 claude-conversation-archiver/
-├── manifest.json       # Chrome extension manifest (v3)
-├── content.js         # Content script for capturing conversations
-├── background.js      # Service worker for storage and sync
-├── popup.html        # Extension popup interface
-├── popup.js          # Popup functionality
-├── icons/            # Extension icons
-└── README.md         # This file
+├── manifest.json          # Extension manifest (v3)
+├── background.js          # Service worker for storage
+├── content.js            # Content script for Claude.ai
+├── popup.html            # Extension popup interface
+├── popup.js              # Popup logic
+├── icons/                # Extension icons
+│   ├── icon-16.png
+│   ├── icon-48.png
+│   └── icon-128.png
+├── scripts/              # Debug and utility scripts
+│   ├── debug-assistant-messages.js
+│   ├── debug-timestamps.js
+│   ├── deep-timestamp-search.js
+│   ├── find-message-timestamps.js
+│   └── monitor-network-timestamps.js
+├── tests/                # Test scripts
+│   └── test-message-order.js
+├── docs/                 # Planning and design documents
+├── README.md             # This file
+├── SCRIPTS_INDEX.md      # Documentation for debug scripts
+├── DEBUGGING_GUIDE.md    # Debugging instructions
+├── LESSONS_LEARNED.md    # Development insights
+└── progress-tracking.txt # Task completion tracking
 ```
 
 ### Key Components
@@ -61,17 +77,22 @@ claude-conversation-archiver/
 This project is structured for incremental development across multiple tasks:
 
 - Task 1: Project setup and manifest configuration ✅
-- Task 2: DOM capture implementation
-- Task 3: Local storage with IndexedDB
-- Task 4: Popup interface and export functionality
-- Task 5: Conversation detection and retrieval
+- Task 2: DOM capture implementation ✅
+- Task 3: Local storage with IndexedDB ✅
+- Task 4: Popup interface and export functionality ✅
+- Task 5: Conversation detection and retrieval ✅
 - Task 6: GitHub Gist sync implementation
 - Task 7: Performance optimization
 - Task 8: Testing and Chrome Store preparation
 - Task 9: Cross-device sync enhancement
 - Task 10: Final polish and documentation
+- Task 11: Incremental message updates (future enhancement)
 
-See `HANDOFF.md` for detailed development status and next steps.
+See `progress-tracking.txt` for detailed task status and completion metrics.
+
+### Debug Scripts
+
+See `SCRIPTS_INDEX.md` for documentation on the debug and test scripts in the `scripts/` and `tests/` folders.
 
 ## Privacy
 
