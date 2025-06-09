@@ -42,21 +42,15 @@ claude-conversation-archiver/
 │   ├── icon-16.png
 │   ├── icon-48.png
 │   └── icon-128.png
-├── scripts/              # Debug and utility scripts
-│   ├── debug-assistant-messages.js
-│   ├── debug-timestamps.js
-│   ├── deep-timestamp-search.js
-│   ├── find-message-timestamps.js
-│   └── monitor-network-timestamps.js
-├── tests/                # Test scripts
-│   └── test-message-order.js
 ├── docs/                 # Planning and design documents
 ├── README.md             # This file
-├── SCRIPTS_INDEX.md      # Documentation for debug scripts
 ├── DEBUGGING_GUIDE.md    # Debugging instructions
 ├── LESSONS_LEARNED.md    # Development insights
+├── SESSION_SUMMARY.md    # Session summary
 └── progress-tracking.txt # Task completion tracking
 ```
+
+Debug scripts are maintained in: `/Users/ahmedmaged/ai_storage/projects/scripts-developed/`
 
 ### Key Components
 
@@ -92,7 +86,8 @@ See `progress-tracking.txt` for detailed task status and completion metrics.
 
 ### Debug Scripts
 
-See `SCRIPTS_INDEX.md` for documentation on the debug and test scripts in the `scripts/` and `tests/` folders.
+Debug and test scripts are maintained in the shared location: `/Users/ahmedmaged/ai_storage/projects/scripts-developed/`
+See `SCRIPTS_DOCUMENTATION.md` in that directory for detailed documentation.
 
 ## Privacy
 
