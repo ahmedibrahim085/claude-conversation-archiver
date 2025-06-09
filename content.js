@@ -69,24 +69,43 @@ function extractTextContent(element) {
   // Clone to avoid modifying DOM
   const clone = element.cloneNode(true);
   
-  // Remove buttons and UI elements
-  clone.querySelectorAll('button, [role="button"], svg').forEach(el => el.remove());
-  
-  // Extract text from different content types
-  let text = '';
-  
-  // Handle code blocks specially
-  const codeBlocks = clone.querySelectorAll('pre code');
-  codeBlocks.forEach(code => {
-    text += '\n```\n' + code.textContent + '\n```\n';
-    code.remove(); // Remove after extracting
+  // Remove only true UI elements (buttons without content, icons)
+  clone.querySelectorAll('button, svg, [role="button"]').forEach(el => {
+    // Only remove if it doesn't contain important content
+    if (!el.querySelector('code, pre, .whitespace-pre-wrap')) {
+      el.remove();
+    }
   });
   
-  // Get remaining text
-  const mainText = clone.textContent?.trim() || '';
-  text = mainText + text;
+  // Function to recursively extract text while preserving order
+  function extractInOrder(node, result = []) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent.trim();
+      if (text) {
+        result.push(text);
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      // Special handling for code blocks
+      if (node.tagName === 'CODE' && node.parentElement?.tagName === 'PRE') {
+        result.push('\n```\n' + node.textContent + '\n```\n');
+        return result; // Don't process children
+      }
+      
+      // Special handling for thought process or details sections
+      if (node.tagName === 'DETAILS' || node.tagName === 'SUMMARY') {
+        result.push('\n[' + (node.tagName === 'SUMMARY' ? 'Thought Process' : 'Details') + ']\n');
+      }
+      
+      // Process children in order
+      for (const child of node.childNodes) {
+        extractInOrder(child, result);
+      }
+    }
+    return result;
+  }
   
-  return text.trim();
+  const textParts = extractInOrder(clone);
+  return textParts.join(' ').replace(/\s\s+/g, ' ').trim();
 }
 
 function captureConversations() {
@@ -124,14 +143,52 @@ function captureConversations() {
     
     // Process Claude messages
     allClaudeMessages.forEach((msgElement) => {
-      // Look for actual content within the message
-      const contentElements = msgElement.querySelectorAll(SELECTORS.messageContent);
+      // Look for all possible content containers, not just .whitespace-pre-wrap
+      const contentSelectors = [
+        SELECTORS.messageContent,
+        'details', // Thought process sections
+        'summary', // Thought process headers
+        'div[class*="prose"]',
+        'div[class*="text"]',
+        'pre', // Code blocks
+        'p', // Paragraphs
+        'ul', 'ol', // Lists
+        'blockquote' // Quotes
+      ].join(', ');
+      
+      const contentElements = msgElement.querySelectorAll(contentSelectors);
       let fullContent = '';
       
       if (contentElements.length > 0) {
+        // Get unique top-level elements (avoid nested duplicates)
+        const processedElements = new Set();
+        const topLevelElements = [];
+        
         contentElements.forEach(el => {
+          let isNested = false;
+          let parent = el.parentElement;
+          
+          // Check if this element is nested inside another content element
+          while (parent && parent !== msgElement) {
+            if (processedElements.has(parent)) {
+              isNested = true;
+              break;
+            }
+            parent = parent.parentElement;
+          }
+          
+          if (!isNested) {
+            topLevelElements.push(el);
+            processedElements.add(el);
+          }
+        });
+        
+        // Extract text from each top-level element
+        topLevelElements.forEach(el => {
           const text = extractTextContent(el);
-          if (text) fullContent += text + '\n';
+          if (text && !fullContent.includes(text)) {
+            fullContent += text + '\n\n';
+          }
         });
       } else {
         // Fallback to entire element
