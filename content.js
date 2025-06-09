@@ -198,6 +198,12 @@ async function sendConversationToBackground(messages) {
   }
   
   try {
+    // Check if extension context is still valid
+    if (!chrome.runtime?.id) {
+      console.warn('Claude Archiver: Extension context invalidated, skipping save');
+      return;
+    }
+    
     const conversationData = {
       url: window.location.href,
       title: document.title,
@@ -219,14 +225,24 @@ async function sendConversationToBackground(messages) {
       data: conversationData
     }, (response) => {
       if (chrome.runtime.lastError) {
-        console.error('Claude Archiver: Error sending message:', chrome.runtime.lastError);
+        // Check if it's a context invalidated error
+        if (chrome.runtime.lastError.message?.includes('context invalidated')) {
+          console.warn('Claude Archiver: Extension was reloaded, please refresh the page');
+        } else {
+          console.error('Claude Archiver: Error sending message:', chrome.runtime.lastError);
+        }
       } else if (response) {
         console.log('Claude Archiver: Response from background:', response);
       }
     });
     
   } catch (error) {
-    console.error('Claude Archiver: Error sending conversation:', error);
+    // Catch context invalidated errors
+    if (error.message?.includes('context invalidated')) {
+      console.warn('Claude Archiver: Extension context invalidated, please refresh the page');
+    } else {
+      console.error('Claude Archiver: Error sending conversation:', error);
+    }
   }
 }
 
@@ -262,6 +278,12 @@ const handleConversationCapture = debounce(() => {
 }, 1500); // Slightly longer debounce for Claude
 
 function setupMutationObserver() {
+  // Check if extension context is still valid before setting up observer
+  if (!chrome.runtime?.id) {
+    console.warn('Claude Archiver: Extension context invalidated, cannot setup observer');
+    return;
+  }
+  
   const targetNode = document.querySelector('main') || document.body;
   console.log('Claude Archiver: Setting up observer on:', targetNode);
   
@@ -274,6 +296,16 @@ function setupMutationObserver() {
   };
   
   observer = new MutationObserver((mutations) => {
+    // Check context validity in observer callback
+    if (!chrome.runtime?.id) {
+      console.warn('Claude Archiver: Extension context invalidated, disconnecting observer');
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+      return;
+    }
+    
     let hasRelevantChanges = false;
     
     for (const mutation of mutations) {
@@ -320,35 +352,65 @@ function setupMutationObserver() {
 }
 
 function checkIfArchived() {
+  // Check if extension context is still valid
+  if (!chrome.runtime?.id) {
+    console.warn('Claude Archiver: Extension context invalidated');
+    return;
+  }
+  
   const conversationId = extractConversationId();
   if (!conversationId || conversationId.startsWith('conv_')) {
     // Not a real conversation ID, clear badge
-    chrome.runtime.sendMessage({ action: 'setBadge', show: false });
+    try {
+      chrome.runtime.sendMessage({ action: 'setBadge', show: false });
+    } catch (error) {
+      console.warn('Claude Archiver: Could not clear badge:', error.message);
+    }
     isArchivedConversation = false;
     return;
   }
   
   // Check if this conversation is archived
-  chrome.runtime.sendMessage({
-    action: 'checkConversation',
-    conversationId: conversationId
-  }, (response) => {
-    if (chrome.runtime.lastError) {
-      console.error('Claude Archiver: Error checking conversation:', chrome.runtime.lastError);
-      return;
-    }
-    
-    if (response?.success && response.exists) {
-      console.log('Claude Archiver: This conversation is archived');
-      isArchivedConversation = true;
-      // Show badge
-      chrome.runtime.sendMessage({ action: 'setBadge', show: true });
+  try {
+    chrome.runtime.sendMessage({
+      action: 'checkConversation',
+      conversationId: conversationId
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        if (chrome.runtime.lastError.message?.includes('context invalidated')) {
+          console.warn('Claude Archiver: Extension was reloaded');
+        } else {
+          console.error('Claude Archiver: Error checking conversation:', chrome.runtime.lastError);
+        }
+        return;
+      }
+      
+      if (response?.success && response.exists) {
+        console.log('Claude Archiver: This conversation is archived');
+        isArchivedConversation = true;
+        // Show badge
+        try {
+          chrome.runtime.sendMessage({ action: 'setBadge', show: true });
+        } catch (error) {
+          console.warn('Claude Archiver: Could not set badge:', error.message);
+        }
+      } else {
+        isArchivedConversation = false;
+        // Clear badge
+        try {
+          chrome.runtime.sendMessage({ action: 'setBadge', show: false });
+        } catch (error) {
+          console.warn('Claude Archiver: Could not clear badge:', error.message);
+        }
+      }
+    });
+  } catch (error) {
+    if (error.message?.includes('context invalidated')) {
+      console.warn('Claude Archiver: Extension context invalidated');
     } else {
-      isArchivedConversation = false;
-      // Clear badge
-      chrome.runtime.sendMessage({ action: 'setBadge', show: false });
+      console.error('Claude Archiver: Error in checkIfArchived:', error);
     }
-  });
+  }
 }
 
 function initialize() {
