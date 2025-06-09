@@ -142,125 +142,93 @@ function captureConversations() {
       return messages;
     }
     
-    // Method 1: Find user messages by data-testid
-    const userMessages = document.querySelectorAll(SELECTORS.userMessage);
-    console.log(`Claude Archiver: Found ${userMessages.length} user messages by testid`);
+    // Base timestamp - we'll decrement this for older messages
+    const baseTimestamp = Date.now();
+    const timestampIncrement = 60000; // 1 minute between messages
     
-    userMessages.forEach((msgElement) => {
-      const content = extractTextContent(msgElement);
-      if (content) {
-        messages.push({
-          role: 'user',
-          content: content,
-          timestamp: Date.now()
-        });
-      }
-    });
+    // Find all message elements in DOM order (chronological)
+    const allMessageElements = document.querySelectorAll('.font-user-message, .font-claude-message');
+    console.log(`Claude Archiver: Found ${allMessageElements.length} total messages in DOM order`);
     
-    // Method 2: Find all messages by font classes
-    const allUserMessages = document.querySelectorAll(SELECTORS.userMessageClass);
-    const allClaudeMessages = document.querySelectorAll(SELECTORS.claudeMessageClass);
-    
-    console.log(`Claude Archiver: Found ${allUserMessages.length} user + ${allClaudeMessages.length} Claude messages by class`);
-    
-    // Process Claude messages
-    allClaudeMessages.forEach((msgElement) => {
-      // Look for all possible content containers, not just .whitespace-pre-wrap
-      const contentSelectors = [
-        SELECTORS.messageContent,
-        'details', // Thought process sections
-        'summary', // Thought process headers
-        'div[class*="prose"]',
-        'div[class*="text"]',
-        'pre', // Code blocks
-        'p', // Paragraphs
-        'ul', 'ol', // Lists
-        'blockquote' // Quotes
-      ].join(', ');
+    // Process messages in their DOM order
+    allMessageElements.forEach((msgElement, index) => {
+      const isUserMessage = msgElement.classList.contains('font-user-message') || 
+                           msgElement.querySelector('[data-testid="user-message"]');
+      const role = isUserMessage ? 'user' : 'assistant';
       
-      const contentElements = msgElement.querySelectorAll(contentSelectors);
-      let fullContent = '';
+      let content = '';
       
-      if (contentElements.length > 0) {
-        // Get unique top-level elements (avoid nested duplicates)
-        const processedElements = new Set();
-        const topLevelElements = [];
-        
-        contentElements.forEach(el => {
-          let isNested = false;
-          let parent = el.parentElement;
-          
-          // Check if this element is nested inside another content element
-          while (parent && parent !== msgElement) {
-            if (processedElements.has(parent)) {
-              isNested = true;
-              break;
-            }
-            parent = parent.parentElement;
-          }
-          
-          if (!isNested) {
-            topLevelElements.push(el);
-            processedElements.add(el);
-          }
-        });
-        
-        // Extract text from each top-level element
-        topLevelElements.forEach(el => {
-          const text = extractTextContent(el);
-          if (text && !fullContent.includes(text)) {
-            fullContent += text + '\n\n';
-          }
-        });
+      if (role === 'user') {
+        // User messages are simpler
+        content = extractTextContent(msgElement);
       } else {
-        // Fallback to entire element
-        fullContent = extractTextContent(msgElement);
+        // Assistant messages - use comprehensive extraction
+        const contentSelectors = [
+          '.whitespace-pre-wrap',
+          'details', // Thought process sections
+          'summary', // Thought process headers
+          'div[class*="prose"]',
+          'div[class*="text"]',
+          'pre', // Code blocks
+          'p', // Paragraphs
+          'ul', 'ol', // Lists
+          'blockquote' // Quotes
+        ].join(', ');
+        
+        const contentElements = msgElement.querySelectorAll(contentSelectors);
+        let fullContent = '';
+        
+        if (contentElements.length > 0) {
+          // Get unique top-level elements (avoid nested duplicates)
+          const processedElements = new Set();
+          const topLevelElements = [];
+          
+          contentElements.forEach(el => {
+            let isNested = false;
+            let parent = el.parentElement;
+            
+            // Check if this element is nested inside another content element
+            while (parent && parent !== msgElement) {
+              if (processedElements.has(parent)) {
+                isNested = true;
+                break;
+              }
+              parent = parent.parentElement;
+            }
+            
+            if (!isNested) {
+              topLevelElements.push(el);
+              processedElements.add(el);
+            }
+          });
+          
+          // Extract text from each top-level element
+          topLevelElements.forEach(el => {
+            const text = extractTextContent(el);
+            if (text && !fullContent.includes(text)) {
+              fullContent += text + '\n\n';
+            }
+          });
+        } else {
+          // Fallback to entire element
+          fullContent = extractTextContent(msgElement);
+        }
+        
+        content = fullContent.trim();
       }
       
-      if (fullContent.trim()) {
+      if (content) {
+        // Calculate timestamp - older messages get earlier timestamps
+        const messageTimestamp = baseTimestamp - ((allMessageElements.length - index - 1) * timestampIncrement);
+        
         messages.push({
-          role: 'assistant',
-          content: fullContent.trim(),
-          timestamp: Date.now()
+          role: role,
+          content: content,
+          timestamp: messageTimestamp
         });
       }
     });
     
-    // Method 3: If no messages found, try more generic approach
-    if (messages.length === 0) {
-      console.log('Claude Archiver: Trying generic message detection...');
-      
-      const containers = document.querySelectorAll(SELECTORS.messageContainer);
-      containers.forEach(container => {
-        // Check if it contains message-like content
-        const text = container.textContent || '';
-        
-        // Skip if too short or contains UI elements
-        if (text.length < 10 || text.includes('Copy') || text.includes('Retry')) {
-          return;
-        }
-        
-        // Try to determine role
-        let role = 'unknown';
-        if (container.querySelector('[data-testid="user-message"]') || 
-            container.querySelector('.font-user-message')) {
-          role = 'user';
-        } else if (container.querySelector('.font-claude-message')) {
-          role = 'assistant';
-        }
-        
-        const content = extractTextContent(container);
-        if (content && content.length > 5) {
-          messages.push({
-            role: role,
-            content: content,
-            timestamp: Date.now()
-          });
-        }
-      });
-    }
-    
-    // Sort messages by their appearance in DOM (approximate chronological order)
     console.log(`Claude Archiver: Total messages captured: ${messages.length}`);
     return messages;
     
