@@ -593,6 +593,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           sendResponse({ success: true, pong: true });
           break;
 
+        case 'importConversations':
+          // Import conversations from JSON
+          try {
+            const imported = await importConversations(message.data, message.merge);
+            sendResponse({ 
+              success: true, 
+              imported: imported 
+            });
+          } catch (error) {
+            console.error('Claude Archiver: Import failed', error);
+            sendResponse({ 
+              success: false, 
+              error: error.message || 'Failed to import conversations' 
+            });
+          }
+          break;
+
+        case 'updateAutoExport':
+          // Update auto-export settings
+          try {
+            await updateAutoExportSettings(message.settings);
+            sendResponse({ success: true });
+          } catch (error) {
+            console.error('Claude Archiver: Update settings failed', error);
+            sendResponse({ 
+              success: false, 
+              error: error.message || 'Failed to update settings' 
+            });
+          }
+          break;
+
         default:
           sendResponse({ 
             success: false, 
@@ -636,3 +667,148 @@ startKeepAlive();
 
 // Log when service worker starts
 console.log('Claude Archiver: Background service worker started');
+
+/**
+ * Import conversations from exported JSON
+ * @param {Array} conversations - Array of conversation objects
+ * @param {boolean} merge - Whether to merge with existing or replace
+ * @returns {Promise<number>} Number of conversations imported
+ */
+async function importConversations(conversations, merge = true) {
+  if (!Array.isArray(conversations)) {
+    throw new Error('Invalid data: expected array of conversations');
+  }
+  
+  let imported = 0;
+  
+  // If not merging, clear existing data first
+  if (!merge) {
+    await db.clear();
+  }
+  
+  // Import each conversation
+  for (const conv of conversations) {
+    try {
+      // Validate conversation structure
+      if (!conv.messages || !Array.isArray(conv.messages)) {
+        console.warn('Skipping invalid conversation:', conv);
+        continue;
+      }
+      
+      // Save conversation (duplicate detection handled in save method)
+      await db.save(conv);
+      imported++;
+    } catch (error) {
+      console.error('Failed to import conversation:', error);
+    }
+  }
+  
+  return imported;
+}
+
+/**
+ * Update auto-export settings and schedule
+ * @param {Object} settings - Export settings
+ */
+async function updateAutoExportSettings(settings) {
+  // Save settings
+  await chrome.storage.local.set({ exportSettings: settings });
+  
+  // Clear existing alarm
+  await chrome.alarms.clear('autoExport');
+  
+  // Set up new alarm based on schedule
+  if (settings.schedule === 'daily') {
+    chrome.alarms.create('autoExport', {
+      periodInMinutes: 24 * 60 // Daily
+    });
+  } else if (settings.schedule === 'weekly') {
+    chrome.alarms.create('autoExport', {
+      periodInMinutes: 7 * 24 * 60 // Weekly
+    });
+  }
+  
+  console.log('Claude Archiver: Auto-export updated:', settings);
+}
+
+/**
+ * Perform automatic export
+ */
+async function performAutoExport() {
+  try {
+    const conversations = await db.getAll();
+    const exportData = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      deviceId: await getDeviceId(),
+      conversationCount: conversations.length,
+      conversations: conversations
+    };
+    
+    // Create blob and trigger download
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
+      type: 'application/json' 
+    });
+    const url = URL.createObjectURL(blob);
+    
+    // Use chrome.downloads API
+    await chrome.downloads.download({
+      url: url,
+      filename: `claude-conversations-auto-${formatDateForFilename(Date.now())}.json`,
+      saveAs: false
+    });
+    
+    // Check if we should clear after export
+    const settings = await chrome.storage.local.get('exportSettings');
+    if (settings.exportSettings?.clearAfterExport) {
+      await db.clear();
+    }
+    
+    console.log('Claude Archiver: Auto-export completed');
+  } catch (error) {
+    console.error('Claude Archiver: Auto-export failed:', error);
+  }
+}
+
+/**
+ * Format date for filename
+ */
+function formatDateForFilename(timestamp) {
+  const date = new Date(timestamp);
+  return date.toISOString().split('T')[0];
+}
+
+// Listen for alarms
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'autoExport') {
+    performAutoExport();
+  }
+});
+
+// Listen for storage changes to check if we need to auto-export
+chrome.storage.onChanged.addListener(async (changes) => {
+  // Check if storage is getting full
+  if (changes.exportSettings) {
+    const settings = changes.exportSettings.newValue;
+    if (settings?.schedule === 'storage-full') {
+      // Check storage usage
+      const conversations = await db.getAll();
+      const estimatedSize = conversations.reduce((total, conv) => {
+        return total + JSON.stringify(conv).length;
+      }, 0);
+      
+      // If over 80% of quota (assuming 10MB quota)
+      if (estimatedSize > 8 * 1024 * 1024) {
+        performAutoExport();
+      }
+    }
+  }
+});
+
+// Export on browser close if enabled
+chrome.runtime.onSuspend.addListener(async () => {
+  const settings = await chrome.storage.local.get('exportSettings');
+  if (settings.exportSettings?.exportOnClose) {
+    await performAutoExport();
+  }
+});

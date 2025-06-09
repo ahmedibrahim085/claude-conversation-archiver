@@ -79,6 +79,52 @@
       background-color: #da190b;
     }
     
+    #importBtn {
+      background-color: #2196F3;
+    }
+    
+    #importBtn:hover {
+      background-color: #0b7dda;
+    }
+    
+    .settings {
+      background-color: white;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .settings h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 16px;
+      color: #333;
+    }
+    
+    .setting-item {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    
+    .setting-item label {
+      display: block;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    
+    .setting-item select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .setting-item input[type="checkbox"] {
+      margin-right: 8px;
+    }
+    
     .status {
       margin-top: 15px;
       padding: 10px;
@@ -155,10 +201,40 @@
     <button id="exportBtn">
       Export All Conversations
     </button>
+    <button id="importBtn">
+      Import Conversations
+    </button>
     <button id="clearBtn">
       Clear All Data
     </button>
   </div>
+  
+  <div class="settings">
+    <h3>Auto-Export Settings</h3>
+    <div class="setting-item">
+      <label for="autoExportSchedule">Auto-export schedule:</label>
+      <select id="autoExportSchedule">
+        <option value="off">Off</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="storage-full">When storage is 80% full</option>
+      </select>
+    </div>
+    <div class="setting-item">
+      <label>
+        <input type="checkbox" id="exportOnClose">
+        Export when closing Chrome
+      </label>
+    </div>
+    <div class="setting-item">
+      <label>
+        <input type="checkbox" id="clearAfterExport">
+        Clear local storage after export
+      </label>
+    </div>
+  </div>
+  
+  <input type="file" id="importFile" accept=".json" style="display: none;">
   
   <div id="status" class="status"></div>
   

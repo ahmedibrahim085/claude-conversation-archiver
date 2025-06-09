@@ -9,8 +9,13 @@ let countElement;
 let lastCaptureElement;
 let storageSizeElement;
 let exportBtn;
+let importBtn;
 let clearBtn;
 let statusElement;
+let autoExportSchedule;
+let exportOnClose;
+let clearAfterExport;
+let importFile;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
@@ -21,12 +26,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   lastCaptureElement = document.getElementById('lastCapture');
   storageSizeElement = document.getElementById('storageSize');
   exportBtn = document.getElementById('exportBtn');
+  importBtn = document.getElementById('importBtn');
   clearBtn = document.getElementById('clearBtn');
   statusElement = document.getElementById('status');
+  autoExportSchedule = document.getElementById('autoExportSchedule');
+  exportOnClose = document.getElementById('exportOnClose');
+  clearAfterExport = document.getElementById('clearAfterExport');
+  importFile = document.getElementById('importFile');
   
   // Set up event listeners
   exportBtn.addEventListener('click', exportConversations);
+  importBtn.addEventListener('click', () => importFile.click());
   clearBtn.addEventListener('click', clearAllData);
+  importFile.addEventListener('change', handleImport);
+  
+  // Settings listeners
+  autoExportSchedule.addEventListener('change', saveSettings);
+  exportOnClose.addEventListener('change', saveSettings);
+  clearAfterExport.addEventListener('change', saveSettings);
   
   // Footer links
   document.getElementById('helpLink').addEventListener('click', (e) => {
@@ -41,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Load initial data
   await loadConversationStats();
+  await loadSettings();
 });
 
 /**
@@ -243,4 +261,88 @@ function formatBytes(bytes) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+/**
+ * Loads settings from storage
+ */
+async function loadSettings() {
+  try {
+    const settings = await chrome.storage.local.get(['exportSettings']);
+    if (settings.exportSettings) {
+      autoExportSchedule.value = settings.exportSettings.schedule || 'off';
+      exportOnClose.checked = settings.exportSettings.exportOnClose || false;
+      clearAfterExport.checked = settings.exportSettings.clearAfterExport || false;
+    }
+  } catch (error) {
+    console.error('Error loading settings:', error);
+  }
+}
+
+/**
+ * Saves settings to storage
+ */
+async function saveSettings() {
+  try {
+    const settings = {
+      schedule: autoExportSchedule.value,
+      exportOnClose: exportOnClose.checked,
+      clearAfterExport: clearAfterExport.checked
+    };
+    
+    await chrome.storage.local.set({ exportSettings: settings });
+    
+    // Send message to background to update alarm
+    await chrome.runtime.sendMessage({
+      action: 'updateAutoExport',
+      settings: settings
+    });
+    
+    showStatus('Settings saved', 'success');
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    showStatus('Failed to save settings', 'error');
+  }
+}
+
+/**
+ * Handles import of conversations from JSON file
+ */
+async function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  try {
+    importBtn.disabled = true;
+    importBtn.innerHTML = 'Importing<span class="loading"></span>';
+    
+    const text = await file.text();
+    const data = JSON.parse(text);
+    
+    // Validate data structure
+    if (!data.conversations || !Array.isArray(data.conversations)) {
+      throw new Error('Invalid file format');
+    }
+    
+    // Send to background for import
+    const response = await chrome.runtime.sendMessage({
+      action: 'importConversations',
+      data: data.conversations,
+      merge: true // Always merge for now
+    });
+    
+    if (response.success) {
+      showStatus(`Imported ${response.imported} conversations`, 'success');
+      await loadConversationStats(); // Refresh stats
+    } else {
+      showStatus('Import failed: ' + response.error, 'error');
+    }
+  } catch (error) {
+    console.error('Import error:', error);
+    showStatus('Failed to import: ' + error.message, 'error');
+  } finally {
+    importBtn.disabled = false;
+    importBtn.innerHTML = 'Import Conversations';
+    importFile.value = ''; // Reset file input
+  }
 }
