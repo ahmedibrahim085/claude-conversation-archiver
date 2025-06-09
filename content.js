@@ -33,6 +33,7 @@ const SELECTORS = {
 
 let lastCaptureHash = '';
 let observer = null;
+let isArchivedConversation = false;
 
 function extractConversationId() {
   try {
@@ -245,7 +246,13 @@ const handleConversationCapture = debounce(() => {
   const messages = captureConversations();
   const currentHash = generateContentHash(JSON.stringify(messages));
   
-  if (currentHash !== lastCaptureHash && messages.length > 0) {
+  // For archived conversations, always send updates if content changed
+  // This ensures new messages in existing conversations are captured
+  if (isArchivedConversation && currentHash !== lastCaptureHash && messages.length > 0) {
+    console.log('Claude Archiver: Updating archived conversation with new content');
+    lastCaptureHash = currentHash;
+    sendConversationToBackground(messages);
+  } else if (currentHash !== lastCaptureHash && messages.length > 0) {
     console.log('Claude Archiver: Content changed, sending update');
     lastCaptureHash = currentHash;
     sendConversationToBackground(messages);
@@ -317,6 +324,7 @@ function checkIfArchived() {
   if (!conversationId || conversationId.startsWith('conv_')) {
     // Not a real conversation ID, clear badge
     chrome.runtime.sendMessage({ action: 'setBadge', show: false });
+    isArchivedConversation = false;
     return;
   }
   
@@ -332,9 +340,11 @@ function checkIfArchived() {
     
     if (response?.success && response.exists) {
       console.log('Claude Archiver: This conversation is archived');
+      isArchivedConversation = true;
       // Show badge
       chrome.runtime.sendMessage({ action: 'setBadge', show: true });
     } else {
+      isArchivedConversation = false;
       // Clear badge
       chrome.runtime.sendMessage({ action: 'setBadge', show: false });
     }
@@ -360,8 +370,9 @@ function initialize() {
     if (url !== lastUrl) {
       lastUrl = url;
       console.log('Claude Archiver: URL changed to:', url);
-      // Reset and recapture
+      // Reset hash and archived status when navigating to new conversation
       lastCaptureHash = '';
+      isArchivedConversation = false;
       // Check if new conversation is archived
       checkIfArchived();
       setTimeout(handleConversationCapture, 2000);
