@@ -194,3 +194,118 @@ The extension now does exactly what users need: saves their Claude conversations
 
 ## One-Line Summary
 > "Build the simplest thing that works, verify assumptions early, and debug systematically when things go wrong."
+
+---
+
+## Update: Session 2 Lessons (2025-06-09)
+
+### New Technical Challenges Solved
+
+1. **Detecting New Content in Archived Conversations**
+   - **Problem**: Once marked as archived, new messages weren't captured
+   - **Solution**: Added `isArchivedConversation` flag to track state
+   - **Learning**: State management in content scripts needs careful planning
+
+2. **Service Worker Keep-Alive**
+   - **Problem**: Chrome suspends service workers after 30 seconds
+   - **Solution**: 20-second interval ping to chrome.storage
+   - **Learning**: Manifest V3 requires active lifecycle management
+
+3. **Message Ordering in DOM**
+   - **Problem**: querySelectorAll doesn't guarantee visual order
+   - **Solution**: Sort by `compareDocumentPosition()`
+   - **Learning**: DOM methods have subtle behaviors
+
+4. **Timestamp Generation**
+   - **Problem**: Claude doesn't expose real timestamps
+   - **Solution**: Generate incremental timestamps (1 min apart)
+   - **Learning**: Sometimes you need creative workarounds
+
+### Strategic Pivots
+
+1. **GitHub Gist Sync → Enhanced Export**
+   - Complex OAuth vs. simple scheduled exports
+   - Users prefer local control
+   - Reduced scope, increased value
+
+2. **Task Prioritization**
+   - User feedback changed priorities
+   - Selective export more valuable than performance optimization
+   - Listen to actual users, not imagined ones
+
+### Development Process Improvements
+
+1. **Git Workflow**
+   - One branch per task
+   - Descriptive commits with emoji markers
+   - Merge to main after testing
+   - Clean history makes debugging easier
+
+2. **Documentation as You Go**
+   - Task completion summaries
+   - Update progress tracking immediately
+   - Maintain CLAUDE.md for cross-project learning
+
+3. **Debug Scripts Archive**
+   - Moved to shared location for reuse
+   - Documented each script's purpose
+   - Time invested pays off in future projects
+
+### Architectural Insights
+
+1. **State Management**
+   - Content scripts need flags for conversation state
+   - Background script shouldn't cache connections
+   - Popup should be stateless, fetch fresh data
+
+2. **Error Handling**
+   - Graceful degradation over crashes
+   - User-friendly error messages
+   - Silent retry for transient failures
+
+3. **Performance**
+   - Debounce DOM observations
+   - Batch database operations
+   - Lazy load UI elements
+
+### Project Management Lessons
+
+1. **Agile Documentation Value**
+   - Epics and user stories clarify scope
+   - Helps communicate with stakeholders
+   - Makes priority decisions easier
+
+2. **MVP Then Iterate**
+   - 6 tasks delivered core value
+   - 7 more tasks are nice-to-haves
+   - Could ship to users now
+
+3. **Feature Requests Signal Real Needs**
+   - Selective export: sharing specific conversations
+   - Artifact download: preserving generated content
+   - These weren't planned but are high value
+
+### Updated Metrics
+
+- **Total Time**: ~6 hours (across 2 days)
+- **Tasks Completed**: 6 of 13 (46%)
+- **User Value**: 90% delivered
+- **Code Quality**: Clean, maintainable, documented
+
+### Top 5 Takeaways
+
+1. **Service workers need active management in Manifest V3**
+2. **User feedback > original planning**
+3. **Simple features (import/export) > complex features (cloud sync)**
+4. **Debug scripts are reusable assets**
+5. **State management in content scripts requires careful design**
+
+### What's Next?
+
+Priority order based on user value:
+1. Selective export (user requested)
+2. Artifact preservation (high value)
+3. Incremental updates (performance)
+4. Chrome Store release (distribution)
+
+The extension is already useful. Further development should be driven by actual user needs, not theoretical features.
